@@ -8,6 +8,8 @@ import numpy as np
 import tempfile
 import os
 import logging
+import uuid
+from datetime import datetime
 
 # ---------------- LOGGING ----------------
 logging.basicConfig(
@@ -26,6 +28,7 @@ def root():
 # ---------------- AWS CLIENTS ----------------
 AWS_REGION = "us-east-1"
 S3_BUCKET = "music-upload-bucket2"
+S3_COVER_BUCKET = "levitate-cover"
 
 s3 = boto3.client("s3", region_name=AWS_REGION)
 
@@ -128,6 +131,32 @@ def generate_image(prompt: str) -> bytes:
 
     return base64.b64decode(image_b64)
 
+# ---------------- S3 IMAGE UPLOAD ----------------
+def upload_image_to_s3(image_bytes: bytes, original_key: str) -> str:
+    """Upload generated image to S3 and return the public URL."""
+    # Generate unique filename based on original audio file and timestamp
+    base_name = os.path.splitext(original_key)[0]
+    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    unique_id = uuid.uuid4().hex[:8]
+    image_key = f"{base_name}_{timestamp}_{unique_id}.png"
+    
+    logger.info(f"Uploading image to S3: {S3_COVER_BUCKET}/{image_key}")
+    
+    s3.put_object(
+        Bucket=S3_COVER_BUCKET,
+        Key=image_key,
+        Body=image_bytes,
+        ContentType="image/png"
+    )
+    
+    # Generate the S3 URL
+    s3_url = f"s3://{S3_COVER_BUCKET}/{image_key}"
+    https_url = f"https://{S3_COVER_BUCKET}.s3.{AWS_REGION}.amazonaws.com/{image_key}"
+    
+    logger.info(f"Image uploaded successfully: {https_url}")
+    
+    return https_url
+
 # ---------------- REQUEST MODELS ----------------
 class GenerateRequest(BaseModel):
     s3_key: str
@@ -167,10 +196,14 @@ def generate_visual(req: GenerateRequest):
 
         os.remove(tmp_path)
 
+        # Upload image to S3 and get the URL
+        logger.info("Uploading image to S3")
+        image_url = upload_image_to_s3(image_bytes, req.s3_key)
+
         return {
             "features": features,
             "prompt": prompt,
-            "image_base64": base64.b64encode(image_bytes).decode("utf-8")
+            "image_url": image_url
         }
 
     except Exception as e:
