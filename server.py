@@ -6,6 +6,7 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, RedirectResponse
+from typing import Optional
 import os
 
 # Import the main API app
@@ -28,7 +29,7 @@ def get_music_id(s3_key: str) -> str:
     """Get a unique ID for a music file (filename without extension)."""
     return os.path.splitext(s3_key)[0]
 
-def get_image_for_music(music_key: str) -> dict | None:
+def get_image_for_music(music_key: str) -> Optional[dict]:
     """Find the latest generated image for a music file."""
     music_id = get_music_id(music_key)
     
