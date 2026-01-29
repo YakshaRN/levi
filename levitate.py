@@ -124,7 +124,7 @@ def generate_image(prompt: str) -> bytes:
     logger.info(f"Bedrock response received ({len(raw)} bytes)")
 
     result = json.loads(raw)
-    image_b64 = result["artifacts"][0]["base64"]
+    image_b64 = result["images"][0]
 
     return base64.b64decode(image_b64)
 
