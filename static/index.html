@@ -122,6 +122,10 @@
             border: 1px solid rgba(233, 69, 96, 0.5);
         }
 
+        .music-item.has-image .music-icon {
+            background: linear-gradient(135deg, #10b981, #34d399);
+        }
+
         .music-icon {
             width: 40px;
             height: 40px;
@@ -543,7 +547,7 @@
                         </svg>
                         Generate Artwork
                     </button>
-                    <button class="btn btn-secondary" id="regenerateBtn" disabled>
+                    <button class="btn btn-secondary" id="regenerateBtn" disabled style="display: none;">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
@@ -564,6 +568,7 @@
         let selectedTrack = null;
         let currentImageUrl = null;
         let currentlyPlayingKey = null;
+        let musicFiles = {};  // Store music file info by key
 
         // DOM Elements
         const uploadZone = document.getElementById('uploadZone');
@@ -627,6 +632,11 @@
                 const data = await response.json();
                 
                 if (data.files && data.files.length > 0) {
+                    // Store music files info
+                    musicFiles = {};
+                    data.files.forEach(file => {
+                        musicFiles[file.key] = file;
+                    });
                     renderMusicList(data.files);
                 } else {
                     musicList.innerHTML = '<div class="empty-state"><p>No music uploaded yet</p></div>';
@@ -640,7 +650,7 @@
         // Render music list
         function renderMusicList(files) {
             musicList.innerHTML = files.map(file => `
-                <div class="music-item" data-key="${file.key}">
+                <div class="music-item ${file.has_image ? 'has-image' : ''}" data-key="${file.key}">
                     <button class="play-btn" data-key="${file.key}" title="Play">
                         <svg class="play-icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z"/>
@@ -656,7 +666,7 @@
                     </div>
                     <div class="music-info">
                         <div class="music-name">${file.key}</div>
-                        <div class="music-meta">${formatFileSize(file.size)}</div>
+                        <div class="music-meta">${formatFileSize(file.size)} ${file.has_image ? '• Has artwork' : ''}</div>
                     </div>
                 </div>
             `).join('');
@@ -689,8 +699,47 @@
                 item.classList.toggle('active', item.dataset.key === key);
             });
             
+            // Check if this track has an existing image
+            const trackInfo = musicFiles[key];
+            if (trackInfo && trackInfo.has_image && trackInfo.image_url) {
+                // Display existing image
+                currentImageUrl = trackInfo.image_url;
+                imageContainer.innerHTML = `
+                    <img src="${trackInfo.image_url}" alt="Generated artwork" class="generated-image">
+                `;
+                
+                // Change button to "Regenerate"
+                generateBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Regenerate Artwork
+                `;
+                regenerateBtn.style.display = 'none';
+            } else {
+                // No existing image - show placeholder
+                currentImageUrl = null;
+                imageContainer.innerHTML = `
+                    <div class="placeholder">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p>Click "Generate Artwork" to create cover art</p>
+                    </div>
+                `;
+                
+                // Change button to "Generate"
+                generateBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Generate Artwork
+                `;
+                regenerateBtn.style.display = 'none';
+            }
+            
             generateBtn.disabled = false;
-            regenerateBtn.disabled = !currentImageUrl;
+            featuresDiv.innerHTML = '';
         }
 
         // Upload file
@@ -734,7 +783,6 @@
                 </div>
             `;
             generateBtn.disabled = true;
-            regenerateBtn.disabled = true;
 
             try {
                 const response = await fetch(`${API_BASE}/generate`, {
@@ -752,6 +800,22 @@
                 const data = await response.json();
                 currentImageUrl = data.image_url;
 
+                // Update the music files cache
+                if (musicFiles[selectedTrack]) {
+                    musicFiles[selectedTrack].has_image = true;
+                    musicFiles[selectedTrack].image_url = data.image_url;
+                }
+
+                // Update the list item to show it has artwork
+                const listItem = document.querySelector(`.music-item[data-key="${selectedTrack}"]`);
+                if (listItem) {
+                    listItem.classList.add('has-image');
+                    const meta = listItem.querySelector('.music-meta');
+                    if (meta && !meta.textContent.includes('Has artwork')) {
+                        meta.textContent = meta.textContent + ' • Has artwork';
+                    }
+                }
+
                 // Display image
                 imageContainer.innerHTML = `
                     <img src="${data.image_url}" alt="Generated artwork" class="generated-image">
@@ -764,7 +828,14 @@
                     <div class="feature-tag">Mood: <span>${data.features.mood}</span></div>
                 `;
 
-                regenerateBtn.disabled = false;
+                // Change button to Regenerate
+                generateBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Regenerate Artwork
+                `;
+
                 showToast('Artwork generated!', 'success');
             } catch (error) {
                 console.error('Generation error:', error);
