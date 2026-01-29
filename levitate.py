@@ -133,7 +133,7 @@ def generate_image(prompt: str) -> bytes:
 
 # ---------------- S3 IMAGE UPLOAD ----------------
 def upload_image_to_s3(image_bytes: bytes, original_key: str) -> str:
-    """Upload generated image to S3 and return the public URL."""
+    """Upload generated image to S3 and return a presigned URL."""
     # Generate unique filename based on original audio file and timestamp
     base_name = os.path.splitext(original_key)[0]
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
@@ -149,13 +149,16 @@ def upload_image_to_s3(image_bytes: bytes, original_key: str) -> str:
         ContentType="image/png"
     )
     
-    # Generate the S3 URL
-    s3_url = f"s3://{S3_COVER_BUCKET}/{image_key}"
-    https_url = f"https://{S3_COVER_BUCKET}.s3.{AWS_REGION}.amazonaws.com/{image_key}"
+    # Generate a presigned URL (valid for 7 days)
+    presigned_url = s3.generate_presigned_url(
+        'get_object',
+        Params={'Bucket': S3_COVER_BUCKET, 'Key': image_key},
+        ExpiresIn=604800  # 7 days in seconds
+    )
     
-    logger.info(f"Image uploaded successfully: {https_url}")
+    logger.info(f"Image uploaded successfully: {image_key}")
     
-    return https_url
+    return presigned_url
 
 # ---------------- REQUEST MODELS ----------------
 class GenerateRequest(BaseModel):
