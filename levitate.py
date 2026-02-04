@@ -172,7 +172,7 @@ class GenerateRequest(BaseModel):
     s3_key: str
 
 # ---------------- UPLOAD ENDPOINT ----------------
-MAX_FILE_SIZE = 1 * 1024 * 1024  # 1 MB
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 
 @app.post("/upload")
 async def upload_mp3(file: UploadFile = File(...)):
@@ -187,7 +187,7 @@ async def upload_mp3(file: UploadFile = File(...)):
         if file_size > MAX_FILE_SIZE:
             raise HTTPException(
                 status_code=400, 
-                detail=f"File too large. Maximum size is 1MB, got {file_size / (1024*1024):.2f}MB"
+                detail=f"File too large. Maximum size is 5MB, got {file_size / (1024*1024):.2f}MB"
             )
         
         # Upload to S3
