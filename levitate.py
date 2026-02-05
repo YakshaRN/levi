@@ -27,9 +27,9 @@ def root():
     return {"status": "ok", "message": "Levitate API is running"}
 
 # ---------------- AWS CLIENTS ----------------
-AWS_REGION = "us-east-1"
-S3_BUCKET = "music-upload-bucket2"
-S3_COVER_BUCKET = "levitate-cover"
+AWS_REGION = "ap-south-2"
+S3_BUCKET = "music-upload-bucket1"
+S3_COVER_BUCKET = "output-covers" #levitate-cover"
 
 s3 = boto3.client("s3", region_name=AWS_REGION)
 
