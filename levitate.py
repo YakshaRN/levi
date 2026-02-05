@@ -36,6 +36,7 @@ S3_COVER_BUCKET = "output-covers"
 s3 = boto3.client(
     "s3",
     region_name=AWSS3_REGION,
+    endpoint_url=f"https://s3.{AWSS3_REGION}.amazonaws.com",
     config=Config(signature_version='s3v4')
 )
 
