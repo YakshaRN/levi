@@ -4,14 +4,16 @@ import boto3
 from botocore.config import Config
 import json
 import base64
-import librosa
-import numpy as np
 import tempfile
 import os
 import logging
 import uuid
 import random
 from datetime import datetime
+
+# Import modular components
+from audio_analyzer import analyze_audio
+from prompt_builder import build_prompt
 
 # ---------------- LOGGING ----------------
 logging.basicConfig(
@@ -44,68 +46,6 @@ bedrock = boto3.client(
     "bedrock-runtime",
     region_name=AWS_REGION
 )
-
-# ---------------- AUDIO ANALYSIS ----------------
-def analyze_audio(path: str) -> dict:
-    y, sr = librosa.load(path)
-
-    tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
-    rms = librosa.feature.rms(y=y).mean()
-
-    y_harm, y_perc = librosa.effects.hpss(y)
-    harmonic_energy = np.mean(np.abs(y_harm))
-    percussive_energy = np.mean(np.abs(y_perc))
-
-    centroid = librosa.feature.spectral_centroid(y=y, sr=sr).mean()
-    contrast = librosa.feature.spectral_contrast(y=y, sr=sr).mean()
-    zcr = librosa.feature.zero_crossing_rate(y).mean()
-
-    if rms < 0.03 and percussive_energy < harmonic_energy:
-        energy = "low"
-    elif rms < 0.06:
-        energy = "medium"
-    else:
-        energy = "high"
-
-    if harmonic_energy > percussive_energy and centroid < 2000:
-        mood = "emotional / warm"
-    elif contrast > 25 and zcr > 0.1:
-        mood = "tense / aggressive"
-    elif centroid > 3000:
-        mood = "bright / uplifting"
-    else:
-        mood = "dark / cinematic"
-
-    return {
-        "tempo": round(float(tempo), 1),
-        "energy": energy,
-        "mood": mood,
-        "rms": float(rms),
-        "centroid": float(centroid)
-    }
-
-# ---------------- PROMPT BUILDER ----------------
-def build_prompt(features: dict) -> str:
-    lighting = {
-        "low": "soft ambient light",
-        "medium": "cinematic balanced lighting",
-        "high": "dramatic volumetric lighting"
-    }[features["energy"]]
-
-    mood_style = {
-        "emotional / warm": "warm sunset tones, soft glow, peaceful atmosphere",
-        "dark / cinematic": "moody shadows, deep contrast",
-        "bright / uplifting": "vibrant colors, hopeful sky"
-    }.get(features["mood"], "cinematic lighting")
-
-    return f"""
-GAME CONCEPT ART of a vast open fantasy landscape.
-Atmosphere: {mood_style}.
-Motion synced with rhythm at {features["tempo"]} BPM.
-Lighting: {lighting}.
-Unreal Engine 5 style, AAA environment concept art.
-Cinematic wide shot, ultra detailed, no text, no watermark.
-""".strip()
 
 # ---------------- BEDROCK IMAGE GENERATION ----------------
 def generate_image(prompt: str, size: int = 512) -> bytes:
