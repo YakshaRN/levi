@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic import BaseModel
 import boto3
+from botocore.config import Config
 import json
 import base64
 import librosa
@@ -32,7 +33,11 @@ AWSS3_REGION = "ap-south-2"
 S3_BUCKET = "music-upload-bucket1"
 S3_COVER_BUCKET = "output-covers"
 
-s3 = boto3.client("s3", region_name=AWSS3_REGION)
+s3 = boto3.client(
+    "s3",
+    region_name=AWSS3_REGION,
+    config=Config(signature_version='s3v4')
+)
 
 bedrock = boto3.client(
     "bedrock-runtime",
