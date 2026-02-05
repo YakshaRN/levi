@@ -31,19 +31,19 @@ def analyze_audio(path: str) -> dict:
 
     # Basic features
     tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
-    rms = librosa.feature.rms(y=y).mean()
+    rms = float(librosa.feature.rms(y=y).mean())
 
     # Harmonic vs percussive separation
     y_harm, y_perc = librosa.effects.hpss(y)
-    harmonic_energy = np.mean(np.abs(y_harm))
-    percussive_energy = np.mean(np.abs(y_perc))
+    harmonic_energy = float(np.mean(np.abs(y_harm)))
+    percussive_energy = float(np.mean(np.abs(y_perc)))
     harmonic_ratio = harmonic_energy / (harmonic_energy + percussive_energy + 1e-6)
 
     # Spectral features
-    centroid = librosa.feature.spectral_centroid(y=y, sr=sr).mean()
-    contrast = librosa.feature.spectral_contrast(y=y, sr=sr).mean()
-    rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr).mean()
-    zcr = librosa.feature.zero_crossing_rate(y).mean()
+    centroid = float(librosa.feature.spectral_centroid(y=y, sr=sr).mean())
+    contrast = float(librosa.feature.spectral_contrast(y=y, sr=sr).mean())
+    rolloff = float(librosa.feature.spectral_rolloff(y=y, sr=sr).mean())
+    zcr = float(librosa.feature.zero_crossing_rate(y).mean())
     
     # Chromagram for tonal analysis
     chroma = librosa.feature.chroma_stft(y=y, sr=sr)
@@ -51,10 +51,10 @@ def analyze_audio(path: str) -> dict:
     dominant_pitch = int(np.argmax(chroma_mean))  # 0-11 representing C to B
     
     # Spectral bandwidth (complexity)
-    bandwidth = librosa.feature.spectral_bandwidth(y=y, sr=sr).mean()
+    bandwidth = float(librosa.feature.spectral_bandwidth(y=y, sr=sr).mean())
 
-    # Classify tempo
-    tempo_val = float(tempo)
+    # Classify tempo (handle both scalar and array returns from librosa)
+    tempo_val = float(tempo[0]) if hasattr(tempo, '__len__') else float(tempo)
     tempo_class = _classify_tempo(tempo_val)
 
     # Energy classification
@@ -77,15 +77,15 @@ def analyze_audio(path: str) -> dict:
     texture = _classify_texture(bandwidth, harmonic_ratio, zcr, percussive_energy, harmonic_energy)
 
     return {
-        "tempo": round(tempo_val, 1),
+        "tempo": float(round(tempo_val, 1)),
         "tempo_class": tempo_class,
         "energy": energy,
         "mood": mood,
         "texture": texture,
-        "harmonic_ratio": round(harmonic_ratio, 2),
-        "dominant_pitch": dominant_pitch,
-        "brightness": round(centroid / 1000, 1),
-        "complexity": round(bandwidth / 1000, 1),
+        "harmonic_ratio": float(round(harmonic_ratio, 2)),
+        "dominant_pitch": int(dominant_pitch),
+        "brightness": float(round(float(centroid) / 1000, 1)),
+        "complexity": float(round(float(bandwidth) / 1000, 1)),
         "rms": float(rms),
         "centroid": float(centroid)
     }
