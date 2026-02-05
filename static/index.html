@@ -625,9 +625,11 @@
             if (!file) return;
             if (file.size > 5 * 1024 * 1024) {
                 showToast('File too large. Maximum size is 5MB', 'error');
+                fileInput.value = '';  // Reset for next upload
                 return;
             }
             uploadFile(file);
+            fileInput.value = '';  // Reset to allow re-uploading same file
         });
 
         // Button Events
@@ -753,6 +755,7 @@
 
         // Upload file
         async function uploadFile(file) {
+            console.log('uploadFile called:', file.name, file.size);
             const formData = new FormData();
             formData.append('file', file);
 
