@@ -28,10 +28,11 @@ def root():
 
 # ---------------- AWS CLIENTS ----------------
 AWS_REGION = "us-east-1"
+AWSS3_REGION = "ap-south-2"
 S3_BUCKET = "music-upload-bucket1"
 S3_COVER_BUCKET = "levitate-cover"
 
-s3 = boto3.client("s3", region_name=AWS_REGION)
+s3 = boto3.client("s3", region_name=AWSS3_REGION)
 
 bedrock = boto3.client(
     "bedrock-runtime",
