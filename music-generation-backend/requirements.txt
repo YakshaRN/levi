@@ -39,7 +39,8 @@ num2words
 protobuf
 sentencepiece
 torchmetrics
-spacy>=3.6.1
+# Pin to version with pre-built wheels (avoids building blis/thinc when gcc is missing)
+spacy==3.7.6
 gradio
 torchtext==0.16.0
 torchvision==0.16.0
