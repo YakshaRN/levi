@@ -56,9 +56,17 @@ brew install ffmpeg
 ```
 
 2. Install Python dependencies:
-```bash
-pip install -r requirements.txt --break-system-packages
-```
+
+   **On EC2 or low disk space** (recommended – avoids CUDA and saves ~2GB+):
+   ```bash
+   pip install torch==2.1.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cpu
+   pip install -r requirements-cpu.txt
+   ```
+
+   Otherwise:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 3. Create environment file:
 ```bash

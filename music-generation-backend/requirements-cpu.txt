@@ -1,4 +1,10 @@
-# For EC2 / low disk: use requirements-cpu.txt (CPU-only PyTorch, no CUDA) to save ~2GB+.
+# CPU-only install (no CUDA) – saves ~2GB+ disk and avoids "No space left on device".
+# Run these two commands in order:
+#
+#   pip install torch==2.1.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cpu
+#   pip install -r requirements-cpu.txt
+#
+
 # Web Framework
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
@@ -13,15 +19,10 @@ audioread==3.0.1
 scipy==1.11.4
 numpy==1.24.3
 
-# ML/AI Models (versions aligned with audiocraft 1.3.0)
-torch==2.1.0
-torchaudio==2.1.0
+# ML/AI (torch/torchaudio installed from CPU index above)
 transformers==4.36.2
 accelerate==0.25.0
 datasets==2.16.1
-
-# Music Generation (audiocraft installed separately with --no-deps to skip xformers on macOS)
-# audiocraft==1.3.0
 
 # Utilities
 python-dotenv==1.0.0
