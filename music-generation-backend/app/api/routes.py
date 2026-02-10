@@ -2,7 +2,6 @@
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
-from typing import Optional
 import os
 import logging
 from datetime import datetime
@@ -10,7 +9,7 @@ from datetime import datetime
 from app.models import (
     UploadResponse, EmbeddingResponse, GenerationRequest,
     GenerationResponse, GenerationStatus, AudioAnalysis,
-    JobStatus, ErrorResponse
+    JobStatus
 )
 from app.config import settings
 from utils.storage import LocalStorage, MetadataStore, generate_unique_id
@@ -115,7 +114,7 @@ async def upload_audio(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail=f"Invalid audio file: {str(e)}")
         
         # Move to upload storage
-        final_path = upload_storage.save_file(temp_path, filename)
+        upload_storage.save_file(temp_path, filename)
         os.remove(temp_path)
         
         # Save metadata

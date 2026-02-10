@@ -84,13 +84,6 @@ class AudioAnalysis(BaseModel):
     features: Optional[dict] = None
 
 
-class ErrorResponse(BaseModel):
-    """Standard error response."""
-    error: str
-    detail: Optional[str] = None
-    code: str
-
-
 class HealthResponse(BaseModel):
     """Health check response."""
     status: str

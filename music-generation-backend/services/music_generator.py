@@ -5,7 +5,6 @@ import numpy as np
 from audiocraft.models import MusicGen
 from audiocraft.data.audio import audio_write
 import logging
-from typing import Optional, List
 import os
 
 logger = logging.getLogger(__name__)
@@ -119,93 +118,6 @@ class MusicGenerator:
             logger.error(f"Failed to generate music: {str(e)}")
             raise
     
-    def generate_from_text(self,
-                          description: str,
-                          duration: int = 30,
-                          temperature: float = 1.0,
-                          top_k: int = 250,
-                          top_p: float = 0.0,
-                          cfg_coef: float = 3.0) -> np.ndarray:
-        """
-        Generate music from text description.
-        
-        Args:
-            description: Text description of desired music
-            duration: Duration in seconds
-            temperature: Sampling temperature
-            top_k: Top-k sampling
-            top_p: Top-p sampling
-            cfg_coef: Classifier-free guidance coefficient
-        
-        Returns:
-            Generated audio array
-        """
-        try:
-            # Set generation parameters
-            self.model.set_generation_params(
-                duration=duration,
-                temperature=temperature,
-                top_k=top_k,
-                top_p=top_p,
-                cfg_coef=cfg_coef
-            )
-            
-            logger.info(f"Generating music from description: '{description}'")
-            
-            # Generate music
-            with torch.no_grad():
-                generated = self.model.generate(
-                    descriptions=[description],
-                    progress=True
-                )
-            
-            # Convert to numpy
-            generated_audio = generated.cpu().numpy().squeeze()
-            
-            logger.info("Music generation completed")
-            return generated_audio
-        
-        except Exception as e:
-            logger.error(f"Failed to generate music: {str(e)}")
-            raise
-    
-    def generate_with_embedding(self,
-                               embedding: np.ndarray,
-                               duration: int = 30,
-                               temperature: float = 1.0,
-                               top_k: int = 250,
-                               top_p: float = 0.0,
-                               cfg_coef: float = 3.0) -> np.ndarray:
-        """
-        Generate music using audio embedding as conditioning.
-        This creates a text prompt based on musical characteristics.
-        
-        Args:
-            embedding: Audio embedding vector
-            duration: Duration in seconds
-            temperature: Sampling temperature
-            top_k: Top-k sampling
-            top_p: Top-p sampling
-            cfg_coef: Classifier-free guidance coefficient
-        
-        Returns:
-            Generated audio array
-        """
-        # Create a generic prompt that encourages similar style
-        # In a production system, you might use the embedding to find
-        # similar tracks or generate a more specific description
-        
-        description = "instrumental music with rich melody and harmony"
-        
-        return self.generate_from_text(
-            description=description,
-            duration=duration,
-            temperature=temperature,
-            top_k=top_k,
-            top_p=top_p,
-            cfg_coef=cfg_coef
-        )
-    
     def save_audio(self, audio: np.ndarray, output_path: str, sr: int = 32000):
         """
         Save generated audio to file.
@@ -237,8 +149,3 @@ class MusicGenerator:
         except Exception as e:
             logger.error(f"Failed to save audio: {str(e)}")
             raise
-    
-    @property
-    def sample_rate(self) -> int:
-        """Get model's sample rate."""
-        return self.model.sample_rate
