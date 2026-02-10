@@ -21,8 +21,9 @@ accelerate==0.25.0
 datasets==2.16.1
 
 # Music Generation (audiocraft installed separately: pip install audiocraft)
-# audiocraft 1.3.0 requires av==11.0.0 for audio I/O
-av==11.0.0
+# PyAV for audiocraft audio I/O. Use a version with pre-built wheels (e.g. 12.x, 15.x)
+# to avoid building from source. If you need av==11.0.0, install system FFmpeg dev libs first.
+av>=11.0.0
 
 # Utilities
 python-dotenv==1.0.0
