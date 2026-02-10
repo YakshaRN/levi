@@ -1,6 +1,6 @@
 """Pydantic models for request/response validation."""
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, validator
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
@@ -27,6 +27,8 @@ class UploadResponse(BaseModel):
 
 class EmbeddingResponse(BaseModel):
     """Response model for audio embedding."""
+    model_config = ConfigDict(protected_namespaces=())
+
     audio_id: str
     embedding: List[float]
     embedding_dim: int
