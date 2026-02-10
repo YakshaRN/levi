@@ -19,9 +19,9 @@ class Settings(BaseSettings):
     processed_dir: str = "data/processed"
     generated_dir: str = "data/generated"
     
-    # Model settings
+    # Model settings (device=cpu for now; set DEVICE=cuda later for GPU)
     embedding_model: str = "laion/clap-htsat-unfused"
-    generation_model: str = "facebook/musicgen-small"
+    generation_model: str = "facebook/musicgen-melody"  # melody model conditions on input for similar variations
     device: str = "cpu"
     
     # Generation parameters

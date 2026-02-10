@@ -1,12 +1,13 @@
 # Music Generation Backend
 
-A backend system for converting instrumental music to vector embeddings and generating similar music.
+Upload an **instrumental** audio track and generate **similar variations**. No GPU required by default (CPU-first; add GPU later if needed).
 
-## Features
-- Audio to vector embedding conversion using pre-trained models
-- Music generation based on input audio characteristics
-- Local testing environment before AWS deployment
-- REST API for music upload, analysis, and generation
+## What it does
+- **Upload** an instrumental file (mp3, wav, flac, m4a, ogg).
+- **Generate** similar variations from that audio (melody-conditioned MusicGen).
+- Optional: get vector embeddings for the audio (CLAP).
+
+Runs on **CPU** by default. Set `DEVICE=cuda` when you want to use a GPU.
 
 ## Project Structure
 ```
@@ -116,16 +117,14 @@ pytest tests/ -v
 
 ## Models Used
 
-1. **CLAP (Contrastive Language-Audio Pretraining)** - For audio embeddings
-2. **MusicGen** - For music generation
-3. **Encodec** - For audio encoding/decoding
+1. **MusicGen Melody** – conditions on your instrumental to generate similar variations (default).
+2. **CLAP** – optional, for audio embeddings.
+3. **Encodec** – used by Audiocraft for audio encoding/decoding.
 
-## Architecture
+## Flow
 
 ```
-User Upload → Audio Processor → Embedder → Storage
-                                    ↓
-                            Music Generator → Generated Audio
+Upload instrumental → (optional: get embedding) → Generate similar variation → Download WAV
 ```
 
 ## Next Steps for AWS Deployment
@@ -138,10 +137,10 @@ User Upload → Audio Processor → Embedder → Storage
 
 ## Performance Notes
 
-- First request may take 30-60s to download models
-- Subsequent requests use cached models
-- Generation time: ~10-30s for 30s audio
-- Recommended: GPU for faster generation (optional for testing)
+- First request may take 30–60s to download models.
+- Subsequent requests use cached models.
+- **CPU**: generation can take a few minutes for 30s audio; fine for development.
+- **GPU** (optional later): set `DEVICE=cuda` for much faster generation.
 
 ## License
 MIT

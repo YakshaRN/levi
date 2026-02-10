@@ -88,24 +88,22 @@ class MusicGenerator:
                 import librosa
                 audio = librosa.resample(audio, orig_sr=sr, target_sr=32000)
             
-            # Convert to torch tensor
-            audio_tensor = torch.from_numpy(audio).unsqueeze(0).unsqueeze(0)
+            # Convert to torch tensor (batch, channels, samples) for conditioning
+            audio_tensor = torch.from_numpy(audio).float().unsqueeze(0).unsqueeze(0)
             audio_tensor = audio_tensor.to(self.device)
             
-            logger.info(f"Generating music (duration: {duration}s, temp: {temperature})")
+            logger.info(f"Generating similar variation (duration: {duration}s, temp: {temperature})")
             
-            # Generate music
+            # Generate music: melody model uses input audio for similar variations; others fall back to text
             with torch.no_grad():
                 if hasattr(self.model, 'generate_continuation'):
-                    # For melody model
+                    # Melody model: conditions on input audio → similar variations
                     generated = self.model.generate_continuation(
                         audio_tensor,
                         prompt_sample_rate=32000,
                         progress=True
                     )
                 else:
-                    # For other models, use unconditional generation
-                    # but we'll generate based on similar characteristics
                     generated = self.model.generate(
                         descriptions=["instrumental music"],
                         progress=True
